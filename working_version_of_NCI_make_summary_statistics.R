@@ -1,5 +1,5 @@
 # VERSION: 1.0
-# LAST UPDATED: OCTOBER 27, 2020
+# LAST UPDATED: DECEMBER 2, 2020
 # AUTHOR: LORENA SANDOVAL
 # EMAIL: lorena.sandoval@nih.gov
 #--------------------------------------------------------------------------------------------
@@ -13,11 +13,13 @@
 
 # Input options for studyDesign:
 
-# 1) "Prospective cohort": a case-control study nested in a prospective cohort study
-# 2) "Population-based studies": eligible cases are all (or a random sample of) cases occurring in a geographically defined population during a specified period, and controls are a random sample of the same source population as cases, recruited during the same period.
-# 3) "Hospital-based": eligible cases are all cases diagnosed in a given hospital or hospitals during a specified period of time, and controls are either population-based controls selected from the catchment area of cases during the same period of time OR, for example, hospital-based controls, with appropriate selection criteria 
+# Input for studyDesign:
+# Here is the update values for StudyDesign:
+# 1) "Nested case-control": a case-control study nested in a prospective cohort study
+# 2) "Population-based case-control studies": eligible cases are all (or a random sample of) cases occurring in a geographically defined population during a specified period, and controls are a random sample of the same source population as cases, recruited during the same period
+# 3) "Hospital-based case-control": eligible cases are all cases diagnosed in a given hospital or hospitals during a specified period of time,and controls are either population-based controls selected from the catchment area of cases during the same period of time OR, for example, hospital-based controls, with appropriate selection criteria 
 # 4) "Mixed": all other studies with cases and controls (e.g. selected cases, blood donor controls)
-# 5) "Cases-only": studies including only patients without controls
+# 5) "Case-series": studies including only patients without controls
 
 # DETAILED EXPLANATION OF SUMMARY STATISTICS 
 
@@ -111,7 +113,6 @@ READ.AGE = function(data, chip2, study2, status2, ethnicityClass2, sex2, ageRang
 }
 
 
-
 #[5a] Function to make empty dataframe ---------------------------------------------------------------------------------------
 MAKE.DF = function(data){
   
@@ -124,9 +125,8 @@ MAKE.DF = function(data){
   
   chip_name= c("Confluence chip","Other chip")
   chip_num= c(1,0)
-  # add studyDesign later on. Will manually add for now. 
-  #studyDesign_name= c("Controls only","Hospital based","Mixed","Patient cohort","Population based","Prospective cohort")
-  #studyDesign_num= c(1,2,3,4,5,6)
+  studyDesign_name= c("Nested case-control","Population-based case-control","Hospital-based case-control","Mixed","Case-series")
+  studyDesign_num= c(1,2,3,4,5)
   status_name= c("case", "control")
   status_num= c(1,0)
   eth_name= c("European", "Hispanic", "African", "Asian", "South East Asian", "Other", "don't know")
@@ -195,7 +195,7 @@ ADD.DATA <- function (data, df){
         chip_name= c("Confluence chip","Other chip")
         chip_num= c(1,0)
         # add studyDesign later on. Will manually add for now. 
-        studyDesign_name= c("Prospective cohort","Population-based","Hospital-based","Mixed","Cases-only")
+        studyDesign_name= c("Nested case-control","Population-based case-control","Hospital-based case-control","Mixed","Case-series")
         studyDesign_num= c(1,2,3,4,5)
         status_name= c("case", "control")
         status_num= c(1,0)
@@ -232,7 +232,7 @@ ADD.DATA <- function (data, df){
                 for (b in status_name){
                   for (c in sex_name){
                     
-                    #-----add studyType rows
+                    #-----add studyDesign rows
                     st=filter(data, study==e,studyDesign !=777,studyDesign !=888)
                     st1=levels(factor(st$studyDesign))
                     st2= paste(st1,sep="")
@@ -375,9 +375,58 @@ MAKE.MISS.STAT <-function(box_id){
               data$ageInt[data$ageInt!=888]<- "Data available"
               data$ageInt[data$ageInt==888] <-"missing"
               
+              # risk factor broad categories-------------------------------
+              data$Lifestyle<- "missing"
+              idx = which(data$"eduCat"!=888 | !is.na(data$"eduComments") |
+                            data$"alcoholFreq" !=888|data$"alcoholCum" !=888 |
+                            data$"smokingEver" !=888| data$"SmoRegStartAge"!=888)
+              data$Lifestyle[idx] ="Data available"
+              #-------------------------------
+              data$"Reproductive history"<- "missing"
+              idx = which(data$"AgeMenarche"!=888 | data$"mensAgeLast"!= 888 |
+                            data$"mensRsn" !=888 |data$"MenoStat" !=888 |
+                            data$"parous" !=888 | data$"parity"!=888|
+                            data$"AgeFFTP" !=888 |data$"lastChildAge" !=888 |
+                            data$"breastfed" !=888 |data$"breastMos" !=888) 
+              data$"Reproductive history"[idx] ="Data available"
+              #-------------------------------
+              data$Anthropometry<- "missing"
+              idx = which(data$"weight"!=888 |data$"height" !=888 |data$"BMI" !=888) 
+              data$Anthropometry[idx]<- "Data available"
+              #-------------------------------
+              data$"Hormone use"<- "missing"
+              idx = which(data$"OCEver"!=888 |data$"OCCurrent" !=888 |data$"OCMo" !=888|
+                          data$"HRTEver"!=888 |data$"HRTCurrent" !=888 |data$"EPEver" !=888| 
+                          data$"EPCurrent"!=888 |data$"EPMo" !=888 |data$"ECurrent" !=888| 
+                          data$"EMo"!=888)
+              data$"Hormone use"[idx]<- "Data available"
+              #-------------------------------
+              data$"Detailed family history"<- "missing"
+              idx = which(data$"sisters"!=888 |data$"brCancerSis" !=888 |data$"ovCancerSis" !=888|
+                          data$"daughters"!=888 |data$"brCancerDau" !=888 |data$"ovCancerDau" !=888| 
+                          data$"brCancerMom"!=888 |data$"ovCancerMom" !=888 |data$"brCancerDad" !=888| 
+                          data$"FHisFstBC"!=888 |data$"FHisFstBCNr" !=888 |data$"FHisSecBC" !=888| 
+                          data$"FHisSecBCNr"!=888 |data$"FHisFstOC" !=888 |data$"FHisFstOCNr" !=888|                             
+                          data$"HRTEver"!=888 |data$"HRTCurrent" !=888 |data$"EPEver" !=888| 
+                          data$"FHisSecOC"!=888 |data$"FHisSecOCNr" !=888 |data$"fam1grBC50" !=888| 
+                          data$"fam1grOC50"!=888)
+              data$"Detailed family history"<- "Data available"
+              #-------------------------------
+              data$"Benign breast disease"<- "missing"
+              idx = which(data$"Biopsies_number"!=888 |data$"BBD_history" !=888 |data$"BBD_number" !=888|
+                            data$"BBD_type1"!=888)
+              data$"Benign breast disease"<- "Data available"
+              #-------------------------------
+              data$"Mode of detection"<- "missing"
+              idx = which(data$"Screen_ever"!=888 |data$"Last_screen_year" !=888 |data$"Last_screen_month" !=888|
+                            data$"Detection_screen"!=888 | data$"Detection_detailed"!=888)
+              data$"Mode of detection"<- "Data available"
               #------------------------------------------------------------------------ 
               
-              variables<- c("status","ageInt", "sex","ethnicityClass","famHist","fhscore","ER_statusIndex")
+              variables<- c("Lifestyle","Reproductive history","Anthropometry","Hormone use",
+                            "Detailed family history","Benign breast disease","Mode of detection",
+                            "status","ageInt", "sex","ethnicityClass","famHist",
+                            "fhscore","ER_statusIndex")
               variables2<- colnames(data)
               matches<-character()
               for (i in variables2){
@@ -403,7 +452,9 @@ MAKE.MISS.STAT <-function(box_id){
               # Add column with zeros if variable has all missings
               library(tibble)
               cols <- c("fhscore_Data available" = 0, "famHist_Data available"=0, "ER_statusIndex_Data available"=0, 
-                        "sex_Data available"=0, "ageInt_Data available"=0)
+                        "sex_Data available"=0, "ageInt_Data available"=0,
+                        "Lifestyle_Data available"=0,"Anthropometry_Data available"=0,"Detailed family history_Data available"=0,
+                        "Benign breast disease_Data available"=0,"Hormone use_Data available"=0,"Mode of detection_Data available"=0)
               
               results = add_column(results, !!!cols[setdiff(names(cols), names(results))])
               
@@ -415,7 +466,13 @@ MAKE.MISS.STAT <-function(box_id){
                   Age="ageInt_Data available",
                   ER_status="ER_statusIndex_Data available",
                   FamHist="famHist_Data available",
-                  Fhscore="fhscore_Data available" 
+                  Fhscore="fhscore_Data available" ,
+                  Lifestyle= "Lifestyle_Data available",
+                  Anthropometry= "Anthropometry_Data available",
+                  "Detailed family history"= "Detailed family history_Data available",
+                  "Benign breast disease"="Benign breast disease_Data available",
+                  "Hormone use"="Hormone use_Data available",
+                  "Mode of detection"="Mode of detection_Data available"
                 )
               
               
@@ -426,7 +483,7 @@ MAKE.MISS.STAT <-function(box_id){
               results<-add_column(results, !!!cols[setdiff(names(cols), names(results))])
               
               #Add "Consortia" column with consortia name as rows
-              results$Consortia<- "BCAC"
+              results$Consortia<- "NCI"
               colnames(results)
               
               #Add study column
@@ -438,8 +495,30 @@ MAKE.MISS.STAT <-function(box_id){
 
 ############################### BEGIN BOX UPLOAD OF  SUMMARY STATISTICS ##################
 
-box_id1= "740527302563"
-#box_id2=
+box_id1= "732912839481"
+box_id2= "732951970812"
+box_id3= "732957179751"
+box_id4= "730916447223"
+box_id5= "732212467224"
+box_id6= "740527302563"
+box_id7= "740518292945"
+  
+#box_id2= "748772607913"
+#box_id1= "727399030430"
+#box_id2= "727396550654"
+#box_id3= "732957179751"
+#box_id4= "730916447223"
+#box_id5= "732212467224"
+
+#"732912839481"-Bravo
+#"732951970812"-share
+#"732957179751"-Reach
+#"730916447223"-CPS-3
+#"732212467224"-Brisbane
+#"740527302563"-InternalBC DAVIS
+#"740518292945"-CAMACHOL
+#"727399030430"-PAK CONTROLS
+#"727396550654"-PAKCASES
 
 # Authenticate user access through boxr
 box_auth(client_id = "627lww8un9twnoa8f9rjvldf7kb56q1m" , client_secret = "gSKdYKLd65aQpZGrq9x4QVUNnn5C8qqm") 
@@ -447,8 +526,14 @@ old_df_summ_stat = box_read(691143057533) # old summstat file, DO NOT CHANGE
 
 # Make one or more summary statistics dataframes and combine with other new files or with the old file
 df1_summ_stat = MAKE.SUMMSTAT(box_id1) # new data - CHANGE BOX ID
+df2_summ_stat = MAKE.SUMMSTAT(box_id2)
+df3_summ_stat = MAKE.SUMMSTAT(box_id3)
+df4_summ_stat = MAKE.SUMMSTAT(box_id4)
+df5_summ_stat = MAKE.SUMMSTAT(box_id5)
+df6_summ_stat = MAKE.SUMMSTAT(box_id6)
+df7_summ_stat = MAKE.SUMMSTAT(box_id7)
 
-df_final_summ_stat = rbind(df1_summ_stat)# old_df_summ_stat,df2_summ_stat,df3_summ_stat) # COMBINE DFs IF MORE THAN ONE or adding to old summary statistics file
+df_final_summ_stat = rbind(df1_summ_stat, df1_summ_stat, df2_summ_stat, df3_summ_stat, df4_summ_stat, df5_summ_stat, df6_summ_stat, df7_summ_stat)# old_df_summ_stat,df2_summ_stat,df3_summ_stat) # COMBINE DFs IF MORE THAN ONE or adding to old summary statistics file
 
 # Save dataframe locally as csv
 write.csv(df_final_summ_stat, "NCI_Summary_Statistics.csv", row.names = FALSE) # change name
@@ -462,8 +547,14 @@ box_ul(109394465112, file="NCI_Summary_Statistics.csv", pb = options()$boxr.prog
 # Make one or more missingness statistics dataframes and combine with other dataframses from new files or with the old missingness file
 old_df_miss_stat =  box_read(682539973716) # # old summstat file, DO NOT CHANGE
 df1_miss_stat = MAKE.MISS.STAT(box_id1) # new data - CHANGE BOX ID
+df2_miss_stat = MAKE.MISS.STAT(box_id2)
+df3_miss_stat = MAKE.MISS.STAT(box_id3)
+df4_miss_stat = MAKE.MISS.STAT(box_id4)
+df5_miss_stat = MAKE.MISS.STAT(box_id5)
+df6_miss_stat = MAKE.MISS.STAT(box_id6)
+df7_miss_stat = MAKE.MISS.STAT(box_id7)
 
-df_final_miss_stat = rbind(df1_miss_stat)# old_df_miss_stat,df2_miss_stat,df3_miss_stat) 
+df_final_miss_stat = rbind(df1_miss_stat, df2_miss_stat, df3_miss_stat, df4_miss_stat, df5_miss_stat, df6_miss_stat, df7_miss_stat)# old_df_miss_stat,df2_miss_stat,df3_miss_stat) 
 
 #Save the missingness statistics results as csv
 write.csv(df_final_miss_stat,"NCI_missingness_statistics.csv",row.names = FALSE)
